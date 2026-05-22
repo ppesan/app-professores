@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
 
   <title>App Professores</title>
 
@@ -10,18 +10,32 @@
   <meta name="theme-color" content="#006633">
   <link rel="stylesheet" href="style.css">
 </head>
-<body>
 
-  <header>
-    <h1>👨‍🏫 App Professores</h1>
-    <p>Instituto Federal Farroupilha</p>
+<body>
+  <header class="topo">
+    <div class="topo-conteudo">
+      <img src="icon-192.png" alt="Ícone do App Professores" class="logo-app">
+      <div>
+        <h1>App Professores</h1>
+        <p>Instituto Federal Farroupilha</p>
+      </div>
+    </div>
+
+    <div class="botoes-topo">
+      <button id="btnInstalar" class="btn-topo" hidden>Instalar App</button>
+      <button id="btnAtualizar" class="btn-topo">Atualizar</button>
+    </div>
   </header>
 
-  <main id="cards">
-    <div class="loading">
-      Carregando módulos...
-    </div>
+  <section id="areaAvisos" class="area-avisos"></section>
+
+  <main id="cards" class="grade-cards">
+    <div class="loading">Carregando módulos...</div>
   </main>
+
+  <footer>
+    App Professores — IFFar
+  </footer>
 
   <script src="app.js"></script>
 
@@ -30,6 +44,5 @@
       navigator.serviceWorker.register("./service-worker.js");
     }
   </script>
-
 </body>
 </html>
