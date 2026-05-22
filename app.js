@@ -13,6 +13,11 @@ const btnInstalar = document.getElementById("btnInstalar");
 const btnNotificacoes = document.getElementById("btnNotificacoes");
 const avisoInstalacao = document.getElementById("avisoInstalacao");
 
+const popupAviso = document.getElementById("popupAviso");
+const popupTitulo = document.getElementById("popupTitulo");
+const popupMensagem = document.getElementById("popupMensagem");
+const btnFecharPopup = document.getElementById("btnFecharPopup");
+
 let deferredPrompt = null;
 
 function quebrarCSV(texto) {
@@ -92,10 +97,8 @@ function configurarBotaoInstalar() {
 
   btnInstalar.addEventListener("click", async () => {
     if (!deferredPrompt) return;
-
     btnInstalar.hidden = true;
     deferredPrompt.prompt();
-
     await deferredPrompt.userChoice;
     deferredPrompt = null;
   });
@@ -139,12 +142,9 @@ function configurarOneSignal() {
       }
     });
 
-    const permissao = OneSignal.Notifications.permission;
-
-    if (permissao) {
+    if (OneSignal.Notifications.permission) {
       btnNotificacoes.textContent = "Notificações ativadas";
       btnNotificacoes.disabled = true;
-      btnNotificacoes.classList.add("btn-desativado");
     }
 
     btnNotificacoes.addEventListener("click", async () => {
@@ -154,10 +154,9 @@ function configurarOneSignal() {
         if (OneSignal.Notifications.permission) {
           btnNotificacoes.textContent = "Notificações ativadas";
           btnNotificacoes.disabled = true;
-          btnNotificacoes.classList.add("btn-desativado");
           alert("Notificações ativadas com sucesso.");
         } else {
-          alert("As notificações não foram ativadas. Verifique a permissão no navegador.");
+          alert("As notificações não foram ativadas.");
         }
       } catch (erro) {
         console.error("Erro ao ativar notificações:", erro);
@@ -184,21 +183,13 @@ async function carregarItens() {
     mostrarCards(itensProf);
   } catch (erro) {
     console.error("Erro ao carregar itens:", erro);
-    cards.innerHTML = `
-      <div class="loading">
-        Erro ao carregar os módulos. Verifique a planilha.
-      </div>
-    `;
+    cards.innerHTML = `<div class="loading">Erro ao carregar os módulos.</div>`;
   }
 }
 
 function mostrarCards(itens) {
   if (!itens.length) {
-    cards.innerHTML = `
-      <div class="loading">
-        Nenhum módulo ativo encontrado.
-      </div>
-    `;
+    cards.innerHTML = `<div class="loading">Nenhum módulo ativo encontrado.</div>`;
     return;
   }
 
@@ -224,40 +215,59 @@ async function carregarAvisos() {
       aviso.ativo?.toUpperCase() === "TRUE"
     );
 
-    mostrarAvisos(ativos);
+    const fixos = ativos.filter(aviso =>
+      (aviso.modo || "").toLowerCase() === "fixo"
+    );
+
+    const popups = ativos.filter(aviso =>
+      (aviso.modo || "").toLowerCase() === "popup"
+    );
+
+    mostrarAvisosFixos(fixos);
+    mostrarPopupUmaVez(popups);
+
   } catch (erro) {
     console.error("Erro ao carregar avisos:", erro);
   }
 }
 
-function mostrarAvisos(avisos) {
+function mostrarAvisosFixos(avisos) {
   if (!avisos.length) {
     areaAvisos.innerHTML = "";
     return;
   }
 
-  areaAvisos.innerHTML = avisos.map(aviso => {
-    const tipo = (aviso.tipo || "info").toLowerCase();
+  areaAvisos.innerHTML = avisos.map(aviso => `
+    <div class="aviso-fixo">
+      <h3>${aviso.titulo || "Aviso"}</h3>
+      <p>${aviso.mensagem || ""}</p>
+    </div>
+  `).join("");
+}
 
-    return `
-      <div class="aviso aviso-${tipo}">
-        <h3>${aviso.titulo || "Aviso"}</h3>
-        <p>${aviso.mensagem || ""}</p>
-      </div>
-    `;
-  }).join("");
+function mostrarPopupUmaVez(avisos) {
+  if (!avisos.length || !popupAviso) return;
+
+  const aviso = avisos.find(a => {
+    const chave = "popup_lido_" + (a.id || a.titulo);
+    return localStorage.getItem(chave) !== "sim";
+  });
+
+  if (!aviso) return;
+
+  popupTitulo.textContent = aviso.titulo || "Aviso";
+  popupMensagem.textContent = aviso.mensagem || "";
+  popupAviso.hidden = false;
+
+  btnFecharPopup.onclick = () => {
+    const chave = "popup_lido_" + (aviso.id || aviso.titulo);
+    localStorage.setItem(chave, "sim");
+    popupAviso.hidden = true;
+  };
 }
 
 configurarBotaoInstalar();
 configurarBotaoAtualizar();
 configurarOneSignal();
 carregarItens();
-const popupAviso = document.getElementById("popupAviso");
-const btnFecharPopup = document.getElementById("btnFecharPopup");
-
-if (btnFecharPopup && popupAviso) {
-  btnFecharPopup.addEventListener("click", () => {
-    popupAviso.hidden = true;
-  });
-}
 carregarAvisos();
