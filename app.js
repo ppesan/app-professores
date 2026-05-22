@@ -6,138 +6,199 @@ const AVISOS_URL =
 
 const cards = document.getElementById("cards");
 const areaAvisos = document.getElementById("areaAvisos");
+const btnAtualizar = document.getElementById("btnAtualizar");
+const btnInstalar = document.getElementById("btnInstalar");
+
+let deferredPrompt = null;
+
+function quebrarCSV(texto) {
+  const linhas = [];
+  let linha = [];
+  let valor = "";
+  let dentroAspas = false;
+
+  for (let i = 0; i < texto.length; i++) {
+    const char = texto[i];
+    const proximo = texto[i + 1];
+
+    if (char === '"' && dentroAspas && proximo === '"') {
+      valor += '"';
+      i++;
+    } else if (char === '"') {
+      dentroAspas = !dentroAspas;
+    } else if (char === "," && !dentroAspas) {
+      linha.push(valor.trim());
+      valor = "";
+    } else if ((char === "\n" || char === "\r") && !dentroAspas) {
+      if (valor || linha.length) {
+        linha.push(valor.trim());
+        linhas.push(linha);
+        linha = [];
+        valor = "";
+      }
+    } else {
+      valor += char;
+    }
+  }
+
+  if (valor || linha.length) {
+    linha.push(valor.trim());
+    linhas.push(linha);
+  }
+
+  return linhas;
+}
+
+function csvParaObjetos(texto) {
+  const linhas = quebrarCSV(texto.trim());
+
+  if (!linhas.length) return [];
+
+  const cabecalho = linhas.shift().map(c =>
+    c.trim().toLowerCase()
+  );
+
+  return linhas.map(linha => {
+    const item = {};
+
+    cabecalho.forEach((coluna, i) => {
+      item[coluna] = (linha[i] || "").trim();
+    });
+
+    return item;
+  });
+}
+
+function appJaInstalado() {
+  return (
+    window.matchMedia("(display-mode: standalone)").matches ||
+    window.navigator.standalone === true
+  );
+}
+
+function configurarBotaoInstalar() {
+  if (!btnInstalar) return;
+
+  if (appJaInstalado()) {
+    btnInstalar.hidden = true;
+    return;
+  }
+
+  window.addEventListener("beforeinstallprompt", evento => {
+    evento.preventDefault();
+
+    if (appJaInstalado()) {
+      btnInstalar.hidden = true;
+      return;
+    }
+
+    deferredPrompt = evento;
+    btnInstalar.hidden = false;
+  });
+
+  btnInstalar.addEventListener("click", async () => {
+    if (!deferredPrompt) return;
+
+    btnInstalar.hidden = true;
+
+    deferredPrompt.prompt();
+
+    await deferredPrompt.userChoice;
+
+    deferredPrompt = null;
+  });
+
+  window.addEventListener("appinstalled", () => {
+    btnInstalar.hidden = true;
+    deferredPrompt = null;
+  });
+}
+
+function configurarBotaoAtualizar() {
+  if (!btnAtualizar) return;
+
+  btnAtualizar.addEventListener("click", async () => {
+    if ("serviceWorker" in navigator) {
+      const registros = await navigator.serviceWorker.getRegistrations();
+      for (const registro of registros) {
+        await registro.unregister();
+      }
+    }
+
+    const nomesCache = await caches.keys();
+    await Promise.all(nomesCache.map(nome => caches.delete(nome)));
+
+    window.location.reload();
+  });
+}
 
 async function carregarItens() {
-
   try {
-
     const resposta = await fetch(
       ITENS_URL + "&t=" + new Date().getTime()
     );
 
     const texto = await resposta.text();
-
-    const linhas = texto
-      .trim()
-      .split("\n")
-      .map(l => l.split(","));
-
-    const cabecalho = linhas.shift().map(c =>
-      c.trim().toLowerCase()
-    );
-
-    const itens = linhas.map(linha => {
-
-      const item = {};
-
-      cabecalho.forEach((coluna, i) => {
-        item[coluna] = (linha[i] || "").trim();
-      });
-
-      return item;
-    });
+    const itens = csvParaObjetos(texto);
 
     const itensProf = itens
       .filter(item => {
+        const ativo = item.ativo?.toUpperCase() === "TRUE";
+        const acesso = (item.acesso || "").toLowerCase();
 
-        return (
-          item.ativo?.toUpperCase() === "TRUE" &&
-          (
-            item.acesso === "prof" ||
-            item.acesso === "publico"
-          )
-        );
-
+        return ativo && (acesso === "prof" || acesso === "publico");
       })
-      .sort(
-        (a, b) =>
-          Number(a.ordem || 999) -
-          Number(b.ordem || 999)
+      .sort((a, b) =>
+        Number(a.ordem || 999) - Number(b.ordem || 999)
       );
 
     mostrarCards(itensProf);
 
   } catch (erro) {
-
-    console.error(erro);
+    console.error("Erro ao carregar itens:", erro);
 
     cards.innerHTML = `
       <div class="loading">
-        Erro ao carregar módulos.
-      </div>weeeem,fr p0--k,n
+        Erro ao carregar os módulos. Verifique a planilha.
+      </div>
     `;
   }
 }
 
 function mostrarCards(itens) {
-
   if (!itens.length) {
-
     cards.innerHTML = `
       <div class="loading">
         Nenhum módulo ativo encontrado.
       </div>
     `;
-
     return;
   }
 
   cards.innerHTML = itens.map(item => {
+    const url = item.url || "#";
 
-  const externo =
-    item.url.includes("aluno-san") ||
-    item.url.includes("script.google.com");
+    return `
+      <a class="card"
+         href="${url}">
 
-  return `
+        <h2>${item.titulo || "Módulo sem título"}</h2>
 
-    <a class="card"
-       href="${item.url}"
-       ${externo
-         ? 'target="_blank" rel="noopener noreferrer"'
-         : ''}>
+        <p>${item.tags || "Módulo do sistema"}</p>
 
-      <h2>${item.titulo}</h2>
-
-      <p>
-        ${item.tags || "Módulo do sistema"}
-      </p>
-
-    </a>
-
-  `;
-
-}).join("");
+      </a>
+    `;
+  }).join("");
 }
 
 async function carregarAvisos() {
-
   try {
-
     const resposta = await fetch(
       AVISOS_URL + "&t=" + new Date().getTime()
     );
 
     const texto = await resposta.text();
-
-    const linhas = texto
-      .trim()
-      .split("\n")
-      .map(l => l.split(","));
-
-    const cabecalho = linhas.shift().map(c =>
-      c.trim().toLowerCase()
-    );
-
-    const avisos = linhas.map(linha => {
-
-      const aviso = {};
-
-      cabecalho.forEach((coluna, i) => {
-        aviso[coluna] = (linha[i] || "").trim();
-      });
-
-      return aviso;
-    });
+    const avisos = csvParaObjetos(texto);
 
     const ativos = avisos.filter(aviso =>
       aviso.ativo?.toUpperCase() === "TRUE"
@@ -146,62 +207,29 @@ async function carregarAvisos() {
     mostrarAvisos(ativos);
 
   } catch (erro) {
-
-    console.error(erro);
-
+    console.error("Erro ao carregar avisos:", erro);
   }
 }
 
 function mostrarAvisos(avisos) {
+  if (!avisos.length) {
+    areaAvisos.innerHTML = "";
+    return;
+  }
 
-  if (!avisos.length) return;
+  areaAvisos.innerHTML = avisos.map(aviso => {
+    const tipo = (aviso.tipo || "info").toLowerCase();
 
-  areaAvisos.innerHTML = avisos.map(aviso => `
-
-    <div class="aviso aviso-${aviso.tipo || "info"}">
-
-      <h3>${aviso.titulo}</h3>
-
-      <p>${aviso.mensagem}</p>
-
-    </div>
-
-  `).join("");
+    return `
+      <div class="aviso aviso-${tipo}">
+        <h3>${aviso.titulo || "Aviso"}</h3>
+        <p>${aviso.mensagem || ""}</p>
+      </div>
+    `;
+  }).join("");
 }
 
-document
-  .getElementById("btnAtualizar")
-  .addEventListener("click", () => {
-
-    location.reload(true);
-
-  });
-
-let deferredPrompt;
-
-window.addEventListener("beforeinstallprompt", e => {
-
-  e.preventDefault();
-
-  deferredPrompt = e;
-
-  const btn = document.getElementById("btnInstalar");
-
-  btn.hidden = false;
-
-  btn.addEventListener("click", async () => {
-
-    btn.hidden = true;
-
-    deferredPrompt.prompt();
-
-    await deferredPrompt.userChoice;
-
-    deferredPrompt = null;
-
-  });
-
-});
-
+configurarBotaoInstalar();
+configurarBotaoAtualizar();
 carregarItens();
 carregarAvisos();
