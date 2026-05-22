@@ -4,10 +4,14 @@ const ITENS_URL =
 const AVISOS_URL =
   "https://docs.google.com/spreadsheets/d/e/2PACX-1vRRySizVgSy5bni7oMRC0iuCzZG0oFuy0F9po0E2SbJPu734PWpD_V_LsXl-pPs4bR_2ySGKxuc6wKR/pub?gid=1684382034&single=true&output=csv";
 
+const ONESIGNAL_APP_ID = "9d13444b-80ef-4849-a7ef-9fc40e499d55";
+
 const cards = document.getElementById("cards");
 const areaAvisos = document.getElementById("areaAvisos");
 const btnAtualizar = document.getElementById("btnAtualizar");
 const btnInstalar = document.getElementById("btnInstalar");
+const btnNotificacoes = document.getElementById("btnNotificacoes");
+const avisoInstalacao = document.getElementById("avisoInstalacao");
 
 let deferredPrompt = null;
 
@@ -51,20 +55,15 @@ function quebrarCSV(texto) {
 
 function csvParaObjetos(texto) {
   const linhas = quebrarCSV(texto.trim());
-
   if (!linhas.length) return [];
 
-  const cabecalho = linhas.shift().map(c =>
-    c.trim().toLowerCase()
-  );
+  const cabecalho = linhas.shift().map(c => c.trim().toLowerCase());
 
   return linhas.map(linha => {
     const item = {};
-
     cabecalho.forEach((coluna, i) => {
       item[coluna] = (linha[i] || "").trim();
     });
-
     return item;
   });
 }
@@ -81,17 +80,12 @@ function configurarBotaoInstalar() {
 
   if (appJaInstalado()) {
     btnInstalar.hidden = true;
+    if (avisoInstalacao) avisoInstalacao.style.display = "none";
     return;
   }
 
   window.addEventListener("beforeinstallprompt", evento => {
     evento.preventDefault();
-
-    if (appJaInstalado()) {
-      btnInstalar.hidden = true;
-      return;
-    }
-
     deferredPrompt = evento;
     btnInstalar.hidden = false;
   });
@@ -100,16 +94,15 @@ function configurarBotaoInstalar() {
     if (!deferredPrompt) return;
 
     btnInstalar.hidden = true;
-
     deferredPrompt.prompt();
 
     await deferredPrompt.userChoice;
-
     deferredPrompt = null;
   });
 
   window.addEventListener("appinstalled", () => {
     btnInstalar.hidden = true;
+    if (avisoInstalacao) avisoInstalacao.style.display = "none";
     deferredPrompt = null;
   });
 }
@@ -132,12 +125,51 @@ function configurarBotaoAtualizar() {
   });
 }
 
+function configurarOneSignal() {
+  if (!btnNotificacoes) return;
+
+  window.OneSignalDeferred = window.OneSignalDeferred || [];
+
+  OneSignalDeferred.push(async function(OneSignal) {
+    await OneSignal.init({
+      appId: ONESIGNAL_APP_ID,
+      serviceWorkerPath: "OneSignalSDKWorker.js",
+      serviceWorkerParam: {
+        scope: "/"
+      }
+    });
+
+    const permissao = OneSignal.Notifications.permission;
+
+    if (permissao) {
+      btnNotificacoes.textContent = "Notificações ativadas";
+      btnNotificacoes.disabled = true;
+      btnNotificacoes.classList.add("btn-desativado");
+    }
+
+    btnNotificacoes.addEventListener("click", async () => {
+      try {
+        await OneSignal.Notifications.requestPermission();
+
+        if (OneSignal.Notifications.permission) {
+          btnNotificacoes.textContent = "Notificações ativadas";
+          btnNotificacoes.disabled = true;
+          btnNotificacoes.classList.add("btn-desativado");
+          alert("Notificações ativadas com sucesso.");
+        } else {
+          alert("As notificações não foram ativadas. Verifique a permissão no navegador.");
+        }
+      } catch (erro) {
+        console.error("Erro ao ativar notificações:", erro);
+        alert("Não foi possível ativar as notificações neste navegador.");
+      }
+    });
+  });
+}
+
 async function carregarItens() {
   try {
-    const resposta = await fetch(
-      ITENS_URL + "&t=" + new Date().getTime()
-    );
-
+    const resposta = await fetch(ITENS_URL + "&t=" + new Date().getTime());
     const texto = await resposta.text();
     const itens = csvParaObjetos(texto);
 
@@ -145,18 +177,13 @@ async function carregarItens() {
       .filter(item => {
         const ativo = item.ativo?.toUpperCase() === "TRUE";
         const acesso = (item.acesso || "").toLowerCase();
-
         return ativo && (acesso === "prof" || acesso === "publico");
       })
-      .sort((a, b) =>
-        Number(a.ordem || 999) - Number(b.ordem || 999)
-      );
+      .sort((a, b) => Number(a.ordem || 999) - Number(b.ordem || 999));
 
     mostrarCards(itensProf);
-
   } catch (erro) {
     console.error("Erro ao carregar itens:", erro);
-
     cards.innerHTML = `
       <div class="loading">
         Erro ao carregar os módulos. Verifique a planilha.
@@ -179,13 +206,9 @@ function mostrarCards(itens) {
     const url = item.url || "#";
 
     return `
-      <a class="card"
-         href="${url}">
-
+      <a class="card" href="${url}">
         <h2>${item.titulo || "Módulo sem título"}</h2>
-
         <p>${item.tags || "Módulo do sistema"}</p>
-
       </a>
     `;
   }).join("");
@@ -193,10 +216,7 @@ function mostrarCards(itens) {
 
 async function carregarAvisos() {
   try {
-    const resposta = await fetch(
-      AVISOS_URL + "&t=" + new Date().getTime()
-    );
-
+    const resposta = await fetch(AVISOS_URL + "&t=" + new Date().getTime());
     const texto = await resposta.text();
     const avisos = csvParaObjetos(texto);
 
@@ -205,7 +225,6 @@ async function carregarAvisos() {
     );
 
     mostrarAvisos(ativos);
-
   } catch (erro) {
     console.error("Erro ao carregar avisos:", erro);
   }
@@ -231,10 +250,6 @@ function mostrarAvisos(avisos) {
 
 configurarBotaoInstalar();
 configurarBotaoAtualizar();
+configurarOneSignal();
 carregarItens();
 carregarAvisos();
-const avisoInstalacao = document.getElementById("avisoInstalacao");
-
-if (avisoInstalacao && appJaInstalado()) {
-  avisoInstalacao.style.display = "none";
-}
