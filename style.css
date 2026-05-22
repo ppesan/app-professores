@@ -202,3 +202,14 @@ footer{
   }
 
 }
+.aviso-instalacao{
+  max-width:1200px;
+  margin:20px auto 0;
+  padding:16px 20px;
+  background:#fff8c5;
+  color:#222;
+  border-left:6px solid #fbc02d;
+  border-radius:14px;
+  box-shadow:var(--sombra);
+  line-height:1.4;
+}
