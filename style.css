@@ -1,47 +1,41 @@
+:root{
+  --verde:#006633;
+  --verde2:#008c46;
+  --cinza:#f2f2f2;
+  --texto:#222;
+  --amarelo:#f7bf27;
+}
+
 *{
   margin:0;
   padding:0;
   box-sizing:border-box;
 }
 
-:root{
-  --verde:#006633;
-  --verde2:#008a45;
-  --cinza:#f3f5f7;
-  --texto:#222;
-  --branco:#ffffff;
-  --sombra:0 6px 18px rgba(0,0,0,0.08);
+body{
+  font-family: Arial, Helvetica, sans-serif;
+  background: var(--cinza);
+  color: var(--texto);
 }
 
-body{
-  font-family:Arial, Helvetica, sans-serif;
-  background:var(--cinza);
-  color:var(--texto);
-  min-height:100vh;
-}
+/* TOPO */
 
 .topo{
-  background:linear-gradient(135deg,var(--verde),var(--verde2));
+  background: var(--verde);
   color:white;
-  padding:24px 20px;
-  box-shadow:var(--sombra);
-  position:sticky;
-  top:0;
-  z-index:1000;
+  padding:16px 20px;
 }
 
 .topo-conteudo{
   display:flex;
   align-items:center;
-  gap:16px;
+  gap:14px;
 }
 
 .logo-app{
   width:72px;
   height:72px;
   border-radius:18px;
-  background:white;
-  padding:6px;
 }
 
 .topo h1{
@@ -50,166 +44,216 @@ body{
 }
 
 .topo p{
-  opacity:0.92;
+  opacity:0.9;
+  font-size:1.1rem;
 }
 
 .botoes-topo{
   display:flex;
   gap:12px;
-  margin-top:18px;
+  margin-top:16px;
   flex-wrap:wrap;
 }
 
 .btn-topo{
+  border:none;
   background:white;
   color:var(--verde);
-  border:none;
   padding:12px 18px;
-  border-radius:12px;
-  cursor:pointer;
+  border-radius:14px;
+  font-size:1rem;
   font-weight:bold;
-  transition:0.2s;
-  box-shadow:0 4px 10px rgba(0,0,0,0.1);
+  cursor:pointer;
+  transition:.2s;
 }
 
 .btn-topo:hover{
-  transform:translateY(-2px);
+  transform:scale(1.03);
 }
+
+/* AVISO FIXO */
 
 .area-avisos{
   max-width:1200px;
-  margin:20px auto 0;
-  padding:0 20px;
+  margin:22px auto 0;
+  padding:0 14px;
 }
 
-.aviso{
-  padding:18px;
-  border-radius:16px;
-  margin-bottom:16px;
-  color:white;
-  box-shadow:var(--sombra);
+.aviso-fixo{
+  background:var(--amarelo);
+  border-radius:22px;
+  padding:22px;
+  box-shadow:0 5px 15px rgba(0,0,0,.08);
 }
 
-.aviso-info{
-  background:#fbc02d;
-  color:#222;
+.aviso-fixo h3{
+  margin-bottom:10px;
+  font-size:1.7rem;
 }
 
-.aviso-alerta{
-  background:#f57c00;
-}
-
-.aviso-urgente{
-  background:#c62828;
-}
-
-.aviso h3{
-  margin-bottom:8px;
-  font-size:1.1rem;
-}
+/* GRADE */
 
 .grade-cards{
-  padding:24px 20px 40px;
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-  gap:20px;
   max-width:1200px;
-  margin:auto;
+  margin:24px auto;
+  padding:0 14px;
+
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(300px,1fr));
+  gap:22px;
 }
+
+/* CARD */
 
 .card{
-  background:var(--branco);
-  border-radius:22px;
-  padding:24px;
+  background:white;
+  border-radius:24px;
+  padding:28px;
   text-decoration:none;
-  color:var(--texto);
-  transition:0.25s;
-  box-shadow:var(--sombra);
-  border-left:7px solid var(--verde);
-  position:relative;
-  overflow:hidden;
-}
+  color:inherit;
 
-.card::before{
-  content:"";
-  position:absolute;
-  top:0;
-  right:0;
-  width:80px;
-  height:80px;
-  background:rgba(0,102,51,0.06);
-  border-radius:50%;
-  transform:translate(30px,-30px);
+  box-shadow:0 5px 18px rgba(0,0,0,.08);
+
+  border-left:7px solid var(--verde);
+
+  transition:.2s;
 }
 
 .card:hover{
-  transform:translateY(-5px);
-  box-shadow:0 10px 24px rgba(0,0,0,0.12);
+  transform:translateY(-4px);
 }
 
 .card h2{
-  font-size:1.15rem;
-  margin-bottom:12px;
-  position:relative;
-  z-index:1;
+  font-size:1.7rem;
+  margin-bottom:14px;
 }
 
 .card p{
   color:#666;
-  font-size:0.96rem;
-  line-height:1.4;
-  position:relative;
-  z-index:1;
+  font-size:1rem;
 }
 
-.loading{
-  grid-column:1/-1;
-  text-align:center;
-  padding:60px 20px;
-  color:#666;
-  font-size:1.1rem;
+/* POPUP */
+
+.popup-aviso{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.55);
+
+  display:flex;
+  justify-content:center;
+  align-items:center;
+
+  z-index:9999;
 }
+
+.popup-caixa{
+  background:white;
+  width:90%;
+  max-width:420px;
+
+  border-radius:24px;
+  padding:30px;
+
+  text-align:center;
+
+  animation:popup .25s ease;
+}
+
+@keyframes popup{
+  from{
+    transform:scale(.9);
+    opacity:0;
+  }
+
+  to{
+    transform:scale(1);
+    opacity:1;
+  }
+}
+
+.popup-caixa h2{
+  margin-bottom:16px;
+  color:var(--verde);
+}
+
+.popup-caixa p{
+  margin-bottom:22px;
+  line-height:1.5;
+}
+
+.popup-caixa button{
+  border:none;
+  background:var(--verde);
+  color:white;
+
+  padding:12px 22px;
+  border-radius:14px;
+
+  cursor:pointer;
+  font-size:1rem;
+}
+
+/* INSTALAÇÃO IOS */
+
+.aviso-instalacao{
+  display:none;
+
+  max-width:1200px;
+  margin:18px auto 0;
+
+  background:white;
+  border-radius:18px;
+
+  padding:18px;
+
+  font-size:1rem;
+  line-height:1.5;
+}
+
+/* FOOTER */
 
 footer{
   text-align:center;
-  padding:30px 20px;
+  padding:30px 15px;
   color:#666;
-  font-size:0.95rem;
+  font-size:.95rem;
 }
 
-@media(max-width:700px){
+/* RESPONSIVO */
 
-  .topo h1{
-    font-size:1.6rem;
+@media(max-width:768px){
+
+  .topo{
+    padding:14px;
   }
 
   .logo-app{
-    width:60px;
-    height:60px;
+    width:58px;
+    height:58px;
   }
 
-  .grade-cards{
-    grid-template-columns:1fr;
-    padding:20px 16px 40px;
+  .topo h1{
+    font-size:1.7rem;
   }
 
-  .card{
-    padding:22px;
+  .topo p{
+    font-size:1rem;
   }
 
   .btn-topo{
     width:100%;
   }
 
-}
-.aviso-instalacao{
-  max-width:1200px;
-  margin:20px auto 0;
-  padding:16px 20px;
-  background:#fff8c5;
-  color:#222;
-  border-left:6px solid #fbc02d;
-  border-radius:14px;
-  box-shadow:var(--sombra);
-  line-height:1.4;
+  .card{
+    padding:22px;
+  }
+
+  .card h2{
+    font-size:1.4rem;
+  }
+
+  .aviso-fixo h3{
+    font-size:1.4rem;
+  }
 }
