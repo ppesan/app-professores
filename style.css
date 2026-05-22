@@ -257,3 +257,6 @@ footer{
     font-size:1.4rem;
   }
 }
+[hidden]{
+  display:none !important;
+}
