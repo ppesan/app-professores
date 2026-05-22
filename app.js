@@ -233,3 +233,8 @@ configurarBotaoInstalar();
 configurarBotaoAtualizar();
 carregarItens();
 carregarAvisos();
+const avisoInstalacao = document.getElementById("avisoInstalacao");
+
+if (avisoInstalacao && appJaInstalado()) {
+  avisoInstalacao.style.display = "none";
+}
