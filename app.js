@@ -64,7 +64,7 @@ async function carregarItens() {
     cards.innerHTML = `
       <div class="loading">
         Erro ao carregar módulos.
-      </div>
+      </div>weeeem,fr p0--k,n
     `;
   }
 }
@@ -82,11 +82,19 @@ function mostrarCards(itens) {
     return;
   }
 
-  cards.innerHTML = itens.map(item => `
+  cards.innerHTML = itens.map(item => {
+
+  const externo =
+    item.url.includes("aluno-san") ||
+    item.url.includes("script.google.com");
+
+  return `
 
     <a class="card"
        href="${item.url}"
-       target="_blank">
+       ${externo
+         ? 'target="_blank" rel="noopener noreferrer"'
+         : ''}>
 
       <h2>${item.titulo}</h2>
 
@@ -96,7 +104,9 @@ function mostrarCards(itens) {
 
     </a>
 
-  `).join("");
+  `;
+
+}).join("");
 }
 
 async function carregarAvisos() {
