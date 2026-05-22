@@ -9,6 +9,7 @@
   <link rel="manifest" href="manifest.json">
   <meta name="theme-color" content="#006633">
   <link rel="stylesheet" href="style.css">
+
   <script src="https://cdn.onesignal.com/sdks/web/v16/OneSignalSDK.page.js" defer></script>
 </head>
 
@@ -16,36 +17,42 @@
   <header class="topo">
     <div class="topo-conteudo">
       <img src="icon-192.png" alt="Ícone do App Professores" class="logo-app">
+
       <div>
         <h1>App Professores</h1>
         <p>IFFAR-SAN</p>
       </div>
     </div>
 
-   <div class="botoes-topo">
+    <div class="botoes-topo">
       <button id="btnAtualizar" class="btn-topo">Atualizar</button>
       <button id="btnNotificacoes" class="btn-topo">Ativar notificações</button>
-  <button id="btnInstalar" class="btn-topo" hidden>Instalar App</button>
-   </div>
-      <button id="btnAtualizar" class="btn-topo">Atualizar</button>
       <button id="btnInstalar" class="btn-topo" hidden>Instalar App</button>
     </div>
   </header>
 
   <section id="areaAvisos" class="area-avisos"></section>
-<section id="avisoInstalacao" class="aviso-instalacao">
-  <strong>Instalar no iPhone/iPad:</strong>
-  abra no Safari, toque em <strong>Compartilhar</strong> e escolha
-  <strong>Adicionar à Tela de Início</strong>.
-</section>
+
+  <section id="avisoInstalacao" class="aviso-instalacao">
+    <strong>Instalar no iPhone/iPad:</strong>
+    abra no Safari, toque em <strong>Compartilhar</strong> e escolha
+    <strong>Adicionar à Tela de Início</strong>.
+  </section>
+
   <main id="cards" class="grade-cards">
     <div class="loading">Carregando módulos...</div>
   </main>
 
+  <div id="popupAviso" class="popup-aviso" hidden>
+    <div class="popup-caixa">
+      <h2 id="popupTitulo"></h2>
+      <p id="popupMensagem"></p>
+      <button id="btnFecharPopup">Entendi</button>
+    </div>
+  </div>
+
   <footer>
-    <footer>
-  App desenvolvido pelo Programa de Permanência e Êxito.
-</footer>
+    App desenvolvido pelo Programa de Permanência e Êxito.
   </footer>
 
   <script src="app.js"></script>
