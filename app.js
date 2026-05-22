@@ -252,4 +252,12 @@ configurarBotaoInstalar();
 configurarBotaoAtualizar();
 configurarOneSignal();
 carregarItens();
+const popupAviso = document.getElementById("popupAviso");
+const btnFecharPopup = document.getElementById("btnFecharPopup");
+
+if (btnFecharPopup && popupAviso) {
+  btnFecharPopup.addEventListener("click", () => {
+    popupAviso.hidden = true;
+  });
+}
 carregarAvisos();
